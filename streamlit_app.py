@@ -2,7 +2,7 @@ import streamlit as st
 from sqlalchemy import create_engine, Column, Integer, String, Text, Date
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
-from datetime import datetime
+from datetime import datetime, timedelta
 import pytz
 
 # 데이터베이스 설정
@@ -62,6 +62,22 @@ def register(username, password):
     session.commit()
     return True
 
+# 날짜 변경 확인 및 데이터 이동
+def check_and_update_schedule():
+    today = datetime.now(pytz.timezone('Europe/Berlin')).date()
+    yesterday = today - timedelta(days=1)
+    yesterday_schedule = session.query(Schedule).filter_by(date=yesterday).first()
+    today_schedule = session.query(Schedule).filter_by(date=today).first()
+
+    if yesterday_schedule and not today_schedule:
+        today_schedule = Schedule(
+            date=today,
+            internal_today=yesterday_schedule.internal_tomorrow,
+            external_today=yesterday_schedule.external_tomorrow
+        )
+        session.add(today_schedule)
+        session.commit()
+
 # Streamlit 세션 상태 초기화
 if 'authenticated' not in st.session_state:
     st.session_state.authenticated = False
@@ -91,6 +107,9 @@ if not st.session_state.authenticated:
             else:
                 st.error("Username already exists")
 else:
+    # 날짜 변경 확인 및 데이터 이동
+    check_and_update_schedule()
+
     # 날짜 설정
     today = datetime.now(pytz.timezone('Europe/Berlin')).date()
     schedule = get_schedule(today)
