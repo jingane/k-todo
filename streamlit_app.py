@@ -30,6 +30,12 @@ class Schedule(Base):
 
 Base.metadata.create_all(engine)
 
+# 초기 관리자 사용자 추가
+if not session.query(User).filter_by(username='admin').first():
+    user = User(username='admin', password='masterit1234!')
+    session.add(user)
+    session.commit()
+
 # 함수 정의
 def get_schedule(date):
     schedule = session.query(Schedule).filter_by(date=date).first()
@@ -69,16 +75,19 @@ else:
 
     # 메모장 UI
     st.header("1. 오늘 내부")
-    internal_today = st.text_area("internal_today", schedule.internal_today or "")
+    internal_today = st.text_area("internal_today", schedule.internal_today or "", key="internal_today")
     st.header("2. 오늘 외부")
-    external_today = st.text_area("external_today", schedule.external_today or "")
+    external_today = st.text_area("external_today", schedule.external_today or "", key="external_today")
     st.header("3. 내일 내부")
-    internal_tomorrow = st.text_area("internal_tomorrow", schedule.internal_tomorrow or "")
+    internal_tomorrow = st.text_area("internal_tomorrow", schedule.internal_tomorrow or "", key="internal_tomorrow")
     st.header("4. 내일 외부")
-    external_tomorrow = st.text_area("external_tomorrow", schedule.external_tomorrow or "")
+    external_tomorrow = st.text_area("external_tomorrow", schedule.external_tomorrow or "", key="external_tomorrow")
 
-    # 데이터베이스에 저장
-    if st.button("Save"):
+    # 자동 저장
+    if internal_today != schedule.internal_today or \
+       external_today != schedule.external_today or \
+       internal_tomorrow != schedule.internal_tomorrow or \
+       external_tomorrow != schedule.external_tomorrow:
         schedule.internal_today = internal_today
         schedule.external_today = external_today
         schedule.internal_tomorrow = internal_tomorrow
@@ -89,13 +98,3 @@ else:
     if st.button("Logout"):
         st.session_state.authenticated = False
         st.experimental_rerun()
-
-# 초기 사용자 추가 (테스트 용도)
-if st.button("Add default user (admin/admin)"):
-    if not session.query(User).filter_by(username='admin').first():
-        user = User(username='admin', password='admin')
-        session.add(user)
-        session.commit()
-        st.success("Default user added")
-    else:
-        st.info("Default user already exists")
