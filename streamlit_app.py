@@ -78,11 +78,15 @@ else:
     # 메모장 UI
     col1, col2 = st.columns(2)
     with col1:
-        internal_today = st.text_area("", schedule.internal_today or "", key="internal_today", height=300)
-        internal_tomorrow = st.text_area("", schedule.internal_tomorrow or "", key="internal_tomorrow", height=300)
+        st.subheader("오늘 내부")
+        internal_today = st.text_area(" ", schedule.internal_today or "", key="internal_today", height=300)
+        st.subheader("내일 내부")
+        internal_tomorrow = st.text_area(" ", schedule.internal_tomorrow or "", key="internal_tomorrow", height=300)
     with col2:
-        external_today = st.text_area("", schedule.external_today or "", key="external_today", height=300)
-        external_tomorrow = st.text_area("", schedule.external_tomorrow or "", key="external_tomorrow", height=300)
+        st.subheader("오늘 외부")
+        external_today = st.text_area(" ", schedule.external_today or "", key="external_today", height=300)
+        st.subheader("내일 외부")
+        external_tomorrow = st.text_area(" ", schedule.external_tomorrow or "", key="external_tomorrow", height=300)
 
     # 자동 저장
     if internal_today != schedule.internal_today or \
