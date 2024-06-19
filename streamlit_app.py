@@ -32,7 +32,7 @@ Base.metadata.create_all(engine)
 
 # 초기 관리자 사용자 추가
 if not session.query(User).filter_by(username='admin').first():
-    user = User(username='admin', password='masterit1234!')
+    user = User(username='admin', password='masterit12345!')
     session.add(user)
     session.commit()
 
@@ -65,7 +65,7 @@ if not st.session_state.authenticated:
     if st.button("Login"):
         if authenticate(username, password):
             st.session_state.authenticated = True
-            st.success("Logged in")
+            st.experimental_rerun()
         else:
             st.error("Invalid username or password")
 else:
@@ -74,14 +74,18 @@ else:
     schedule = get_schedule(today)
 
     # 메모장 UI
-    st.header("1. 오늘 내부")
-    internal_today = st.text_area("internal_today", schedule.internal_today or "", key="internal_today")
-    st.header("2. 오늘 외부")
-    external_today = st.text_area("external_today", schedule.external_today or "", key="external_today")
-    st.header("3. 내일 내부")
-    internal_tomorrow = st.text_area("internal_tomorrow", schedule.internal_tomorrow or "", key="internal_tomorrow")
-    st.header("4. 내일 외부")
-    external_tomorrow = st.text_area("external_tomorrow", schedule.external_tomorrow or "", key="external_tomorrow")
+    st.header("Today's Schedule")
+    col1, col2 = st.columns(2)
+    with col1:
+        st.subheader("1. 오늘 내부")
+        internal_today = st.text_area("internal_today", schedule.internal_today or "", key="internal_today", height=300)
+        st.subheader("3. 내일 내부")
+        internal_tomorrow = st.text_area("internal_tomorrow", schedule.internal_tomorrow or "", key="internal_tomorrow", height=300)
+    with col2:
+        st.subheader("2. 오늘 외부")
+        external_today = st.text_area("external_today", schedule.external_today or "", key="external_today", height=300)
+        st.subheader("4. 내일 외부")
+        external_tomorrow = st.text_area("external_tomorrow", schedule.external_tomorrow or "", key="external_tomorrow", height=300)
 
     # 자동 저장
     if internal_today != schedule.internal_today or \
