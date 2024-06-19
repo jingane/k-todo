@@ -30,14 +30,6 @@ class Schedule(Base):
 
 Base.metadata.create_all(engine)
 
-# 초기 관리자 사용자 추가
-def add_default_user():
-    if not session.query(User).filter_by(username='admin').first():
-        user = User(username='admin', password='masterit12345!')
-        session.add(user)
-        session.commit()
-add_default_user()
-
 # 함수 정의
 def get_schedule(date):
     schedule = session.query(Schedule).filter_by(date=date).first()
@@ -53,23 +45,42 @@ def authenticate(username, password):
         return True
     return False
 
+def register(username, password):
+    if session.query(User).filter_by(username=username).first():
+        return False
+    user = User(username=username, password=password)
+    session.add(user)
+    session.commit()
+    return True
+
 # Streamlit 세션 상태 초기화
 if 'authenticated' not in st.session_state:
     st.session_state.authenticated = False
+    st.session_state.user = None
 
 # Streamlit 앱
 st.title("Schedule Notepad")
 
-# 사용자 인증
+# 사용자 인증 및 회원가입
 if not st.session_state.authenticated:
+    auth_mode = st.radio("Choose an option", ["Login", "Sign Up"])
     username = st.text_input("Username")
     password = st.text_input("Password", type="password")
-    if st.button("Login"):
-        if authenticate(username, password):
-            st.session_state.authenticated = True
-            st.experimental_rerun()
-        else:
-            st.error("Invalid username or password")
+
+    if auth_mode == "Login":
+        if st.button("Login"):
+            if authenticate(username, password):
+                st.session_state.authenticated = True
+                st.session_state.user = username
+                st.experimental_rerun()
+            else:
+                st.error("Invalid username or password")
+    else:
+        if st.button("Sign Up"):
+            if register(username, password):
+                st.success("User registered successfully")
+            else:
+                st.error("Username already exists")
 else:
     # 날짜 설정
     today = datetime.now(pytz.timezone('Europe/Berlin')).date()
@@ -78,13 +89,13 @@ else:
     # 메모장 UI
     col1, col2 = st.columns(2)
     with col1:
-        st.subheader("오늘 내부")
-        internal_today = st.text_area(" ", schedule.internal_today or "", key="internal_today", height=300)
+        st.subheader("오늘 외부")
+        external_today = st.text_area(" ", schedule.external_today or "", key="external_today", height=300)
         st.subheader("내일 내부")
         internal_tomorrow = st.text_area(" ", schedule.internal_tomorrow or "", key="internal_tomorrow", height=300)
     with col2:
-        st.subheader("오늘 외부")
-        external_today = st.text_area(" ", schedule.external_today or "", key="external_today", height=300)
+        st.subheader("오늘 내부")
+        internal_today = st.text_area(" ", schedule.internal_today or "", key="internal_today", height=300)
         st.subheader("내일 외부")
         external_tomorrow = st.text_area(" ", schedule.external_tomorrow or "", key="external_tomorrow", height=300)
 
@@ -102,4 +113,5 @@ else:
 
     if st.button("Logout"):
         st.session_state.authenticated = False
+        st.session_state.user = None
         st.experimental_rerun()
