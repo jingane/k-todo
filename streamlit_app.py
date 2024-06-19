@@ -104,7 +104,7 @@ else:
     t_rex_game = """
     <iframe src="https://chromedino.com/" width="100%" height="500px" frameborder="0"></iframe>
     """
-    st.components.v1.html(t_rex_game, height=500)
+    st.components.html(t_rex_game, height=500)
 
     # 자동 저장
     if internal_today != schedule.internal_today or \
